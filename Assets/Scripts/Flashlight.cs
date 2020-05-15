@@ -14,6 +14,12 @@ public class Flashlight : BaseObject
     public GameObject lightSprite;
     public GameObject redBat;
     private int batCount = 5;
+    public AudioClip buttonPress;
+
+    protected override void Awake()
+    {
+        base.Awake();
+    }
     void Start()
     {
         _light = GetComponentInChildren<Light>();
@@ -22,6 +28,7 @@ public class Flashlight : BaseObject
 
     private void FlashLightClic(bool val)
     {
+        base.Audio.PlayOneShot(buttonPress);
         _light.enabled = val;
         lightSprite.SetActive(val);
        

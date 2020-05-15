@@ -18,6 +18,7 @@ public abstract class BaseObject : MonoBehaviour
     private Color _color;
 
     private Animator _animator;
+    private AudioSource _audio;
 
     protected Transform GOtransform { get => _GOtransform; set => _GOtransform = value; }
     protected GameObject GOInstance { get => _GOInstance;}
@@ -59,8 +60,9 @@ public abstract class BaseObject : MonoBehaviour
     protected Material Material { get => _material;}
     protected Color Color { get => _color; set => _color = value; }
     protected Animator Animator { get => _animator;}
+    protected AudioSource Audio { get => _audio; }
 
-   
+
     protected virtual void Awake()
     {
         _GOInstance = gameObject;
@@ -80,6 +82,10 @@ public abstract class BaseObject : MonoBehaviour
            _material = GetComponent<Renderer>().material;
         
         _color = GetComponent<Renderer>().material.color;
+        }
+        if (GetComponent<AudioSource>())
+        {
+            _audio = GetComponent<AudioSource>();
         }
     }
     void Start()
