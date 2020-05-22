@@ -79,7 +79,8 @@ public class Gun : BaseWeapon, IRocket
 
             if (prefab)
             {
-                Instantiate(_rocket, _rocketBase[rocketBaseID].position, Quaternion.Euler(TMcam.eulerAngles));
+                GameObject temp =Instantiate(_rocket, _rocketBase[rocketBaseID].position, Quaternion.Euler(TMcam.eulerAngles));
+                temp.GetComponent<RocketLaunch>()._damage = _damage;
                 _rocketBaseRenderer[rocketBaseID].enabled = false;
                 if(rocketBaseID>2)
                 {

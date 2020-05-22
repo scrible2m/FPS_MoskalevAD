@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Unit : MonoBehaviour, ISetDamage
+public class Unit : BaseObject, ISetDamage
 {
     [SerializeField] private int _health;
     [SerializeField] private bool _dead;

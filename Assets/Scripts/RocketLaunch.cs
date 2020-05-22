@@ -10,6 +10,8 @@ public class RocketLaunch : MonoBehaviour
     [SerializeField] IRocket _iRocket;
     [SerializeField] GameObject _explosion;
     private Transform TMCam;
+    public int _damage;
+    HashSet<GameObject> _objInCollider = new HashSet<GameObject>();
     void Start()
     {
         TMCam = Camera.main.transform;
@@ -26,9 +28,21 @@ public class RocketLaunch : MonoBehaviour
         flyght.rotation = TMCam.rotation;
         if (Input.GetButtonDown("Fire1"))
         {
+            
             DestroyObject();
 
         }
+    }
+    
+
+    void OnTriggerEnter(Collider other)
+    {
+        _objInCollider.Add(other.gameObject);
+    }
+
+    void OnTriggerExit2D(Collider2D other)
+    {
+        _objInCollider.Remove(other.gameObject);
     }
 
     public void RocketState(IRocket obj, bool flag)
@@ -38,16 +52,27 @@ public class RocketLaunch : MonoBehaviour
 
 
 
-    public void OnTriggerEnter(Collider other)
+    public void OnCollisionEnter(Collision other)
     {
         DestroyObject();
     }
 
     private void DestroyObject()
     {
+        foreach (var item in _objInCollider)
+        {
+            SetDamage(item.gameObject.GetComponent<ISetDamage>());
+        }
         Instantiate(_explosion, gameObject.transform.position, Quaternion.identity);
         RocketState(_iRocket, true);
         Destroy(gameObject);
+    }
+    private void SetDamage(ISetDamage obj)
+    {
+        if (obj != null)
+        {
+            obj.SetDamage(_damage);
+        }
     }
 }
 

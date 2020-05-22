@@ -12,6 +12,8 @@ TagManager:
   - Ammo
   - FxTemporaire
   - Rocket
+  - Target
+  - TargetPoint
   layers:
   - Default
   - TransparentFX
