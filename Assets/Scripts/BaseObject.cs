@@ -41,7 +41,19 @@ public abstract class BaseObject : MonoBehaviour
             }
         }
     }
-    protected Vector3 Position { get => _position; set => _position = value; }
+    protected Vector3 Position
+    {
+        get
+        {
+            _position = _GOtransform.position;
+            return _position;
+        }
+        set
+        {
+            _position = value;
+            GOtransform.position = _position;
+        }
+    }
     protected Vector3 Scale 
     { get
         {

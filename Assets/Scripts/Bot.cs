@@ -87,7 +87,7 @@ public class Bot : Unit, IAngry
     {
         Debug.Log("Seek");
         Collider[] _targetInViewRadius = Physics.OverlapSphere(Position, _maxRadius, _targetLayer);
-        Debug.DrawRay(Position, transform.forward, Color.red, _maxRadius);
+        Debug.Log(_targetInViewRadius.Length);
         for (int i = 0; i< _targetInViewRadius.Length; i++)
         {
             
