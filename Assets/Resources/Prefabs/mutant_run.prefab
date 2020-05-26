@@ -335,7 +335,9 @@ MonoBehaviour:
   _obstacleLayer:
     serializedVersion: 2
     m_Bits: 1
+  archer: 0
   Target: {x: 0, y: 0, z: 0}
+  _damage: 12
 --- !u!54 &1060761411
 Rigidbody:
   m_ObjectHideFlags: 0

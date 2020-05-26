@@ -36,6 +36,7 @@ public class Bot : Unit
     [SerializeField] private float _maxRadius = 30f;
     [SerializeField] private LayerMask _targetLayer;
     [SerializeField] private LayerMask _obstacleLayer;
+    [SerializeField] private bool archer = false;
 
 #if UNITY_EDITOR
     
@@ -55,8 +56,9 @@ public class Bot : Unit
     {
         while (true)
         {
-            yield return new WaitForSeconds(1.7f);
             Damage(obj);
+            Debug.Log("Attack!!" + _agent.stoppingDistance);
+            yield return new WaitForSeconds(1.8f);
         }
     }
     IEnumerator FindTargets(float _delay)
@@ -183,11 +185,11 @@ public class Bot : Unit
                     
                     
                 }
-                else
+                else if (archer)
                 {
                     _agent.stoppingDistance = _seekDistance;
                     _agent.SetDestination(Target);
-                    //StopCoroutine("Attack");
+                    StopCoroutine("Attack");
                     _attack = false;
                 }
                
@@ -195,7 +197,7 @@ public class Bot : Unit
             else
             {
                 _agent.SetDestination(Target);
-              //  StopCoroutine("Attack");
+                StopCoroutine("Attack");
                 _attack = false;
             }
         }

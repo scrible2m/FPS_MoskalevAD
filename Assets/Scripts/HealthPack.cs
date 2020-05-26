@@ -21,8 +21,11 @@ public class HealthPack : MonoBehaviour
     }
     IEnumerator Heal(ISetDamage obj)
     {
-        yield return new WaitForSeconds(0.4f);
-        obj.SetDamage(-_unDamage);
-        Debug.Log("I Healed " + obj + "to " + _unDamage + "hp...");
+        while (true)
+        {
+            yield return new WaitForSeconds(0.4f);
+            obj.SetDamage(-_unDamage);
+            Debug.Log("I Healed " + obj + "to " + _unDamage + "hp...");
+        }
     }
 }

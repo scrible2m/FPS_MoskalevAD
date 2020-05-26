@@ -15,6 +15,7 @@ TagManager:
   - Target
   - TargetPoint
   - HealthPack
+  - HP
   layers:
   - Default
   - TransparentFX

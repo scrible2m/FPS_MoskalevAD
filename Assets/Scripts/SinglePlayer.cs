@@ -1,5 +1,6 @@
 ﻿using System.CodeDom.Compiler;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class SinglePlayer : Unit
 {
@@ -10,10 +11,13 @@ public class SinglePlayer : Unit
     private Transform Mcam;
     private RaycastHit Hit;
 
-    
+    protected Text _hp;
+
+
     void Start()
     {
         Mcam = Camera.main.transform;
+        _hp = GameObject.FindWithTag("HP").GetComponent<Text>();
     }
     public void PickupItem(IInventory obj, int ID)
     {
@@ -71,6 +75,7 @@ public class SinglePlayer : Unit
                 TempGO.GetComponentInChildren<SpriteRenderer>().enabled = false ;
             }
         }
+        _hp.text = "+ " + Health.ToString();
     }
 
 }
