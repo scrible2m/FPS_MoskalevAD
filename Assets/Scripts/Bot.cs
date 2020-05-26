@@ -33,7 +33,7 @@ public class Bot : Unit, IAngry
 
     [SerializeField] private List<Transform> _visibleTargets = new List<Transform>();
     [SerializeField] private float _maxAngle = 35f;
-    [SerializeField] private float _maxRadius = 25f;
+    [SerializeField] private float _maxRadius = 30f;
     [SerializeField] private LayerMask _targetLayer;
     [SerializeField] private LayerMask _obstacleLayer;
 
@@ -50,7 +50,7 @@ public class Bot : Unit, IAngry
     private bool _startTimer = false;
     private int _startHealth;
 
-    private IEnumerator FindTargets(float _delay)
+    IEnumerator FindTargets(float _delay)
     {
         while (true)
         {
@@ -86,7 +86,7 @@ public class Bot : Unit, IAngry
     private void FindVisibleTargets()
     {
         Debug.Log("Seek");
-        Collider[] _targetInViewRadius = Physics.OverlapSphere(Position, _maxRadius, _targetLayer);
+        Collider[] _targetInViewRadius = Physics.OverlapSphere(transform.position, _maxRadius, _targetLayer);
         Debug.Log(_targetInViewRadius.Length);
         for (int i = 0; i< _targetInViewRadius.Length; i++)
         {
@@ -162,7 +162,7 @@ public class Bot : Unit, IAngry
             Vector3 pos = transform.position + Vector3.up;
             Ray ray = new Ray(pos, transform.forward);
             RaycastHit hit;
-            transform.LookAt(new Vector3(Target.x, 0f, Target.z));
+            transform.LookAt(new Vector3(Target.x, Target.y, Target.z));
             if (Physics.Raycast(ray, out hit, 7f, _targetLayer))
             {
                 if (hit.collider.tag == "Player")
