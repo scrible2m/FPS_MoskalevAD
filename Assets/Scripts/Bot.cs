@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 
 [RequireComponent(typeof(NavMeshAgent))]
 
-public class Bot : Unit, IAngry
+public class Bot : Unit
 {
     private NavMeshAgent _agent;
     private Transform _playerPos;
@@ -17,8 +17,8 @@ public class Bot : Unit, IAngry
     private float _groundChkDst = 0.1f;
 
     private float _stopDistance = 0.2f;
-    private float _attakDistance = 2f;
-    private float _seekDistance = 1f;
+    private float _attakDistance = 4f;
+    private float _seekDistance = 3f;
 
     [SerializeField] List<Vector3> _wayPoints = new List<Vector3>();
     private int _pointCounter = 0;
@@ -49,7 +49,16 @@ public class Bot : Unit, IAngry
     private float _spawnTimer = 9f;
     private bool _startTimer = false;
     private int _startHealth;
+    [SerializeField] int _damage;
 
+    IEnumerator Attack(ISetDamage obj)
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(1.7f);
+            Damage(obj);
+        }
+    }
     IEnumerator FindTargets(float _delay)
     {
         while (true)
@@ -163,23 +172,31 @@ public class Bot : Unit, IAngry
             Ray ray = new Ray(pos, transform.forward);
             RaycastHit hit;
             transform.LookAt(new Vector3(Target.x, Target.y, Target.z));
-            if (Physics.Raycast(ray, out hit, 7f, _targetLayer))
+            if (Physics.Raycast(ray, out hit, 4f, _targetLayer))
             {
-                if (hit.collider.tag == "Player")
+                if (hit.collider.tag == "Player" && !_attack)
                 {
+                    _attack = true;
                     _agent.ResetPath();
-                    Animator.SetTrigger("Attack");
+                    ISetDamage temp = hit.collider.GetComponent<ISetDamage>();
+                    StartCoroutine("Attack", temp);
+                    
+                    
                 }
                 else
                 {
                     _agent.stoppingDistance = _seekDistance;
                     _agent.SetDestination(Target);
+                    //StopCoroutine("Attack");
+                    _attack = false;
                 }
                
             }
             else
             {
                 _agent.SetDestination(Target);
+              //  StopCoroutine("Attack");
+                _attack = false;
             }
         }
         
@@ -222,17 +239,17 @@ public class Bot : Unit, IAngry
             }
         }
 
-        if (_agent.remainingDistance <_agent.stoppingDistance && _isTarget)
-        {
-            Animator.SetTrigger("Attack");
-        }
-        //_deltaTransform.position = new Vector3(_agent.transform.position.x, _agent.transform.position.y, _agent.transform.position.z);
+       
+        
     }
 
-    public void Agr()
+    private void Damage(ISetDamage obj)
     {
-       // _agent.SetDestination(_playerPos.position);
-       // _agr = true;
+        Animator.SetTrigger("Attack");
+        if (obj != null)
+        {
+            obj.SetDamage(_damage);
+        }
     }
 
     private void Spawn()
