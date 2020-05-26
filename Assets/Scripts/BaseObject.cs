@@ -56,7 +56,7 @@ public abstract class BaseObject : MonoBehaviour
         }
     }
     protected Quaternion Rotation { get => _rotation; set => _rotation = value; }
-    protected Rigidbody Rogodbody { get => _rigidbody;}
+    protected Rigidbody RB { get => _rigidbody;}
     protected Material Material { get => _material;}
     protected Color Color { get => _color; set => _color = value; }
     protected Animator Animator { get => _animator;}

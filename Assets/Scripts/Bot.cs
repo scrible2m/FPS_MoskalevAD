@@ -1,81 +1,228 @@
 ﻿using System;
+using System.CodeDom.Compiler;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEditor;
+using System.Runtime.CompilerServices;
+
 [RequireComponent(typeof(NavMeshAgent))]
 
 public class Bot : Unit, IAngry
 {
     private NavMeshAgent _agent;
     private Transform _playerPos;
-    [SerializeField] private Transform[] TargetBase;
-    [SerializeField] private Transform Target;
+    private bool _grounded;
+    private float _groundChkDst = 0.1f;
+
+    private float _stopDistance = 0.2f;
+    private float _attakDistance = 2f;
+    private float _seekDistance = 1f;
+
+    [SerializeField] List<Vector3> _wayPoints = new List<Vector3>();
+    private int _pointCounter = 0;
+    private GameObject _wayPointMain;
+
+    private float _timeWait = 4f;
+    private float _timeOut=0f;
+
+    [SerializeField] private bool _patrol;
+    [SerializeField] private bool _attack;
+    [SerializeField] private bool _isTarget;
+
+    [SerializeField] private List<Transform> _visibleTargets = new List<Transform>();
+    [SerializeField] private float _maxAngle = 35f;
+    [SerializeField] private float _maxRadius = 25f;
+    [SerializeField] private LayerMask _targetLayer;
+    [SerializeField] private LayerMask _obstacleLayer;
+
+#if UNITY_EDITOR
+    
+#endif
+
+
+    [SerializeField] private Vector3 Target;
     private int i = 0;
     private int j;
-    [SerializeField] private bool _agr;
-    private Transform _deltaTransform;
+    private Vector3  _startPos;
+    private float _spawnTimer = 9f;
+    private bool _startTimer = false;
+    private int _startHealth;
 
+    private IEnumerator FindTargets(float _delay)
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(_delay);
+            FindVisibleTargets();
+        }
+    }
     protected override void Awake()
     {
         base.Awake();
-        Health = 100;
         Dead = false;
         _agent = GetComponent<NavMeshAgent>();
         _agent.updatePosition = true;
         _agent.updateRotation = true;
 
         _playerPos = FindObjectOfType<SinglePlayer>().transform;
-        _agent.stoppingDistance = 1.5f;
-        Transform temp = GameObject.FindWithTag("Target").transform;
-        Array.Resize(ref TargetBase, temp.childCount);
-        for (int k = 0; k<temp.childCount;k++)
+        _agent.stoppingDistance = _stopDistance;
+
+        _wayPointMain = FindObjectOfType<PathWaypoints>().gameObject;
+        foreach (Transform T in _wayPointMain.transform)
         {
-          TargetBase[k]  = temp.GetChild(k);
+            _wayPoints.Add(T.position);
         }
-        //_deltaTransform.position = new Vector3(_agent.transform.position.x, _agent.transform.position.y, _agent.transform.position.z);
-        Target = TargetBase[i];
-        _agent.SetDestination(Target.position);
+        _patrol = true;
+
+        _startPos = Position;
+        _startHealth = Health;
+
+        StartCoroutine("FindTargets", 0.1f);
 
     }
-    
 
-     void OnTriggerEnter(Collider other)
+    private void FindVisibleTargets()
     {
-        if (other.gameObject.tag == "TargetPoint" && !_agr)
+        Debug.Log("Seek");
+        Collider[] _targetInViewRadius = Physics.OverlapSphere(Position, _maxRadius, _targetLayer);
+        Debug.DrawRay(Position, transform.forward, Color.red, _maxRadius);
+        for (int i = 0; i< _targetInViewRadius.Length; i++)
         {
-            Debug.Log(gameObject.name + " Enteret " + other.name);
-            do
+            
+            Transform target = _targetInViewRadius[i].transform;
+            Vector3 dirToTarget = (target.position - Position).normalized;
+            float targetAngle = Vector3.Angle(transform.forward, dirToTarget);
+            if ((-_maxAngle)<targetAngle && _maxAngle>targetAngle)
             {
-                 j = Mathf.RoundToInt(UnityEngine.Random.Range(0f, TargetBase.Length - 1));
-
-
+                float distToTarget = Vector3.Distance(Position, target.position);
+                if(!Physics.Raycast((transform.position+Vector3.up), dirToTarget, _obstacleLayer))
+                {
+                    if(!_visibleTargets.Contains(target))
+                    {
+                        _visibleTargets.Add(target);
+                    }
+                }
             }
-            while (i == j);
-            Target = TargetBase[j];
-            _agent.SetDestination(Target.position);
         }
+        
     }
-
-
     void Update()
     {
-        
-        //if (!_agent.po)
-        //{
-        //    Animator.SetBool("Move", true);
-        //}
-        //else
-        //{
-        //    Animator.SetBool("Move", false);
-        //}
-        if (Health <= 0)
+        if (_visibleTargets.Count > 0)
         {
-            Animator.SetTrigger("Death");
-            Destroy(gameObject, 3);
+            _patrol = false;
+            Target = _visibleTargets[0].position;
+            if (Vector3.Distance(Position, Target) > _maxRadius)
+            {
+                _visibleTargets.Clear();
+            }
+        }
+        else
+        {
+            _patrol = true;
+        }
+        if (_patrol)
+        {
+            if (_wayPoints.Count > 1)
+            {
+                _agent.stoppingDistance = _stopDistance;
+                _agent.SetDestination(_wayPoints[_pointCounter]);
+                if (!_agent.hasPath)
+                {
+                    RB.isKinematic = true;
+                    _timeOut += Time.deltaTime;
+                    if (_timeOut > _timeWait)
+                    { 
+                        _timeOut = 0;
+                        if (_pointCounter < _wayPoints.Count - 1)
+                        {
+                            _pointCounter++;
+                        }
+                        else
+                        {
+                            _pointCounter = 0;
+                        }
+                        RB.isKinematic = false;
+                    }
+                
+                }
+            }
+            else
+            {
+                _agent.SetDestination(_playerPos.position);
+                _agent.stoppingDistance = _attakDistance;
+            }
+        }
+        else
+        {
+            _agent.stoppingDistance = _attakDistance;
+            _agent.SetDestination(Target);
+            Vector3 pos = transform.position + Vector3.up;
+            Ray ray = new Ray(pos, transform.forward);
+            RaycastHit hit;
+            transform.LookAt(new Vector3(Target.x, 0f, Target.z));
+            if (Physics.Raycast(ray, out hit, 7f, _targetLayer))
+            {
+                if (hit.collider.tag == "Player")
+                {
+                    _agent.ResetPath();
+                    Animator.SetTrigger("Attack");
+                }
+                else
+                {
+                    _agent.stoppingDistance = _seekDistance;
+                    _agent.SetDestination(Target);
+                }
+               
+            }
+            else
+            {
+                _agent.SetDestination(Target);
+            }
+        }
+        
+        if (Health <= _startHealth*0.2)
+        {
+            Target = GameObject.FindGameObjectWithTag("HealthPack").transform.position;
+            _agent.SetDestination(Target);
+            _patrol = false;
+            
+        }
+        if (Health >= _startHealth)
+        {
+            Health = _startHealth;
+            _patrol = true;
         }
 
-        if (_agent.remainingDistance <1.8f && _agr)
+        if (_agent.remainingDistance>_agent.stoppingDistance)
+        {
+            Animator.SetBool("Move", true);
+        }
+        else
+        {
+            Animator.SetBool("Move", false);
+        }
+
+        if (Health <= 0)
+        {
+            _agent.ResetPath();
+            RB.isKinematic = true;
+            Animator.SetBool("Death", true);
+            _startTimer = true;
+        }
+
+        if (_startTimer)
+        {
+            _spawnTimer -= Time.deltaTime;
+            if (_spawnTimer <=0)
+            {
+                Spawn();
+            }
+        }
+
+        if (_agent.remainingDistance <_agent.stoppingDistance && _isTarget)
         {
             Animator.SetTrigger("Attack");
         }
@@ -84,8 +231,21 @@ public class Bot : Unit, IAngry
 
     public void Agr()
     {
-        _agent.SetDestination(_playerPos.position);
-        _agr = true;
+       // _agent.SetDestination(_playerPos.position);
+       // _agr = true;
+    }
+
+    private void Spawn()
+    {
+        Position = _startPos;
+        IsVisible = true;
+        Health = _startHealth;
+        Dead = false;
+        Animator.SetBool("Death", false);
+        Animator.SetTrigger("Idle");
+        _spawnTimer = 9f;
+        _startTimer = false;
+        RB.isKinematic = false;
     }
 }
  
