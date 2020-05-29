@@ -16,6 +16,7 @@ TagManager:
   - TargetPoint
   - HealthPack
   - HP
+  - Enemy
   layers:
   - Default
   - TransparentFX
@@ -29,7 +30,7 @@ TagManager:
   - Selectable
   - EnemyTarget
   - BotLayer
-  - 
+  - ArcherLayer
   - 
   - 
   - 

@@ -6,9 +6,12 @@ public class Unit : BaseObject, ISetDamage
 {
     [SerializeField] private int _health;
     [SerializeField] private bool _dead;
+    [SerializeField] private bool _singlePlayer;
+    [SerializeField] private SinglePlayer _sp;
 
     public int Health { get => _health; set => _health = value; }
     public bool Dead { get => _dead; set => _dead = value; }
+    
     
     public void SetDamage( int damage)
     {

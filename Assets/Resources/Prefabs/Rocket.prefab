@@ -14207,7 +14207,6 @@ GameObject:
   - component: {fileID: 3924632325670480049}
   - component: {fileID: 722460756385148691}
   - component: {fileID: 2205025447165367574}
-  - component: {fileID: 2201519565126296580}
   - component: {fileID: 7712674166796628598}
   m_Layer: 0
   m_Name: Rocket
@@ -14247,6 +14246,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _speed: 0.8
   _explosion: {fileID: 0}
+  _damage: 0
 --- !u!136 &2205025447165367574
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -14259,20 +14259,6 @@ CapsuleCollider:
   m_Enabled: 1
   m_Radius: 5.31
   m_Height: 31.46942
-  m_Direction: 2
-  m_Center: {x: -0, y: 0, z: -1.6696017}
---- !u!136 &2201519565126296580
-CapsuleCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7639707615315009685}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 1
-  m_Enabled: 1
-  m_Radius: 5.31
-  m_Height: 46.87
   m_Direction: 2
   m_Center: {x: -0, y: 0, z: -1.6696017}
 --- !u!54 &7712674166796628598

@@ -16,16 +16,20 @@ public class Bot : Unit
     private bool _grounded;
     private float _groundChkDst = 0.1f;
 
-    private float _stopDistance = 0.2f;
-    private float _attakDistance = 4f;
-    private float _seekDistance = 3f;
+    [SerializeField] private float _stopDistance = 0.2f;
+    [SerializeField] private float _attakDistance = 4f;
+    [SerializeField] private float _seekDistance = 3f;
+    [SerializeField] private float _shootDistance;
+    [SerializeField] private float _speed;
 
+    [Header("Bot WaiPoints")]
     [SerializeField] List<Vector3> _wayPoints = new List<Vector3>();
     private int _pointCounter = 0;
     private GameObject _wayPointMain;
 
     private float _timeWait = 4f;
     private float _timeOut=0f;
+    private float delay;
 
     [SerializeField] private bool _patrol;
     [SerializeField] private bool _attack;
@@ -37,9 +41,43 @@ public class Bot : Unit
     [SerializeField] private LayerMask _targetLayer;
     [SerializeField] private LayerMask _obstacleLayer;
     [SerializeField] private bool archer = false;
+    [SerializeField] private ISetDamage _iSetDamage;
 
 #if UNITY_EDITOR
-    
+    [ContextMenu("Units/Mutant")]
+    public void DefaultMutant()
+    {
+        Health = 80;
+        _stopDistance = 0.2f;
+        _attakDistance = 3f;
+        _damage = 8;
+        _patrol = true;
+        archer = false;
+        _maxAngle = 35;
+        _maxRadius = 20;
+        _speed = 6;
+        delay = 3f;
+        _shootDistance = 3;
+        
+    }
+    [ContextMenu("Units/Archer")]
+    public void DefaultArcher()
+    {
+        Health = 100;
+        _stopDistance = 0.2f;
+        _attakDistance = 45f;
+        _seekDistance = 20f;
+        _damage = 15;
+        _patrol = true;
+        archer = true;
+        _maxAngle = 35;
+        _maxRadius = 50;
+        _speed = 5;
+        delay = 1f;
+        _shootDistance = 500f;
+
+    }
+
 #endif
 
 
@@ -52,13 +90,14 @@ public class Bot : Unit
     private int _startHealth;
     [SerializeField] int _damage;
 
-    IEnumerator Attack(ISetDamage obj)
+    IEnumerator Attack()
     {
         while (true)
         {
-            Damage(obj);
-            Debug.Log("Attack!!" + _agent.stoppingDistance);
-            yield return new WaitForSeconds(1.8f);
+
+            Animator.SetTrigger("Attack");
+            RB.isKinematic = true;
+            yield return new WaitForSeconds(delay);
         }
     }
     IEnumerator FindTargets(float _delay)
@@ -86,6 +125,7 @@ public class Bot : Unit
             _wayPoints.Add(T.position);
         }
         _patrol = true;
+        _agent.speed = _speed;
 
         _startPos = Position;
         _startHealth = Health;
@@ -136,11 +176,16 @@ public class Bot : Unit
         }
         if (_patrol)
         {
+            _agent.speed = _speed;
+            if(archer)
+            {
+                Animator.SetBool("Run", false);
+            }
             if (_wayPoints.Count > 1)
             {
                 _agent.stoppingDistance = _stopDistance;
                 _agent.SetDestination(_wayPoints[_pointCounter]);
-                if (!_agent.hasPath)
+                if (_agent.remainingDistance<0.5f)
                 {
                     RB.isKinematic = true;
                     _timeOut += Time.deltaTime;
@@ -164,6 +209,11 @@ public class Bot : Unit
             {
                 _agent.SetDestination(_playerPos.position);
                 _agent.stoppingDistance = _attakDistance;
+                if (archer)
+                {
+                    _agent.speed = _speed * 1.7f;
+                    Animator.SetBool("Run", true);
+                }
             }
         }
         else
@@ -173,15 +223,15 @@ public class Bot : Unit
             Vector3 pos = transform.position + Vector3.up;
             Ray ray = new Ray(pos, transform.forward);
             RaycastHit hit;
-            transform.LookAt(new Vector3(Target.x, Target.y, Target.z));
-            if (Physics.Raycast(ray, out hit, 4f, _targetLayer))
+            transform.LookAt(new Vector3(Target.x, transform.position.y, Target.z));
+            if (Physics.Raycast(ray, out hit, _shootDistance, _targetLayer))
             {
-                if (hit.collider.tag == "Player" && !_attack)
+                if ((hit.collider.tag == "Player" || hit.collider.tag == "Enemy") && !_attack)
                 {
                     _attack = true;
                     _agent.ResetPath();
-                    ISetDamage temp = hit.collider.GetComponent<ISetDamage>();
-                    StartCoroutine("Attack", temp);
+                    _iSetDamage = hit.collider.GetComponent<ISetDamage>();
+                    StartCoroutine("Attack");
                     
                     
                 }
@@ -191,6 +241,9 @@ public class Bot : Unit
                     _agent.SetDestination(Target);
                     StopCoroutine("Attack");
                     _attack = false;
+                    RB.isKinematic = false;
+                    _agent.speed = _speed *2f;
+                    Animator.SetBool("Run", true);
                 }
                
             }
@@ -199,6 +252,8 @@ public class Bot : Unit
                 _agent.SetDestination(Target);
                 StopCoroutine("Attack");
                 _attack = false;
+                RB.isKinematic = false;
+                _iSetDamage = null;
             }
         }
         
@@ -207,6 +262,12 @@ public class Bot : Unit
             Target = GameObject.FindGameObjectWithTag("HealthPack").transform.position;
             _agent.SetDestination(Target);
             _patrol = false;
+            if (archer)
+            {
+                _agent.speed = _speed * 2;
+                Animator.SetBool("Run", false);
+
+            }
             
         }
         if (Health >= _startHealth)
@@ -245,12 +306,14 @@ public class Bot : Unit
         
     }
 
-    private void Damage(ISetDamage obj)
+    private void Damage()
     {
-        Animator.SetTrigger("Attack");
-        if (obj != null)
+        if (!Dead)
         {
-            obj.SetDamage(_damage);
+            if (_iSetDamage != null)
+            {
+                _iSetDamage.SetDamage(_damage);
+            }
         }
     }
 

@@ -1,4 +1,5 @@
-﻿using System.CodeDom.Compiler;
+﻿using JetBrains.Annotations;
+using System.CodeDom.Compiler;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -7,17 +8,24 @@ public class SinglePlayer : Unit
     [SerializeField] private GameObject TempGO;
     [SerializeField] private bool Select;
     [SerializeField] private LayerMask Layer;
+    [SerializeField] private Animator _damageSprite;
+    [SerializeField] private Animator _healSprite;
 
     private Transform Mcam;
     private RaycastHit Hit;
 
     protected Text _hp;
+    protected int _tempHP;
 
 
     void Start()
     {
+        _tempHP = Health;
         Mcam = Camera.main.transform;
         _hp = GameObject.FindWithTag("HP").GetComponent<Text>();
+        _damageSprite = GameObject.Find("DamageSprite").GetComponent<Animator>();
+        _healSprite = GameObject.Find("HealSprite").GetComponent<Animator>();
+       
     }
     public void PickupItem(IInventory obj, int ID)
     {
@@ -30,7 +38,6 @@ public class SinglePlayer : Unit
     }
     void Update()
     {
-        Debug.DrawRay(Mcam.position, Mcam.forward,Color.red, 7f);
         if (Physics.Raycast(Mcam.position, Mcam.forward, out Hit, 7f, Layer))
         {
             Collider target = Hit.collider;
@@ -75,7 +82,21 @@ public class SinglePlayer : Unit
                 TempGO.GetComponentInChildren<SpriteRenderer>().enabled = false ;
             }
         }
-        _hp.text = "+ " + Health.ToString();
+        _hp.text = "+" + Health.ToString();
+
+        if (_tempHP>Health)
+        {
+            _damageSprite.SetTrigger("Fade");
+            _tempHP = Health;
+
+        }
+        if (_tempHP < Health)
+        {
+           _healSprite.SetTrigger("Fade");
+            _tempHP = Health;
+        }
+
     }
+   
 
 }

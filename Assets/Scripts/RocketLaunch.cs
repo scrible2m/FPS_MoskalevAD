@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityStandardAssets.Effects;
 
-public class RocketLaunch : MonoBehaviour
+public class RocketLaunch : BaseObject
 {
     private Transform flyght;
     [SerializeField] float _speed;
@@ -11,7 +11,10 @@ public class RocketLaunch : MonoBehaviour
     [SerializeField] GameObject _explosion;
     private Transform TMCam;
     public int _damage;
-    HashSet<GameObject> _objInCollider = new HashSet<GameObject>();
+    protected override void Awake()
+    {
+        base.Awake();
+    }
     void Start()
     {
         TMCam = Camera.main.transform;
@@ -35,15 +38,7 @@ public class RocketLaunch : MonoBehaviour
     }
     
 
-    void OnTriggerEnter(Collider other)
-    {
-        _objInCollider.Add(other.gameObject);
-    }
-
-    void OnTriggerExit2D(Collider2D other)
-    {
-        _objInCollider.Remove(other.gameObject);
-    }
+    
 
     public void RocketState(IRocket obj, bool flag)
     {
@@ -59,9 +54,14 @@ public class RocketLaunch : MonoBehaviour
 
     private void DestroyObject()
     {
+        Collider[] _objInCollider = Physics.OverlapSphere(GOtransform.position, 8);
         foreach (var item in _objInCollider)
         {
             SetDamage(item.gameObject.GetComponent<ISetDamage>());
+            if (item.GetComponent<Rigidbody>())
+            { 
+                item.GetComponent<Rigidbody>().AddForce(((item.transform.position - GOtransform.position))*45, ForceMode.Impulse);
+            }
         }
         Instantiate(_explosion, gameObject.transform.position, Quaternion.identity);
         RocketState(_iRocket, true);
@@ -72,6 +72,7 @@ public class RocketLaunch : MonoBehaviour
         if (obj != null)
         {
             obj.SetDamage(_damage);
+
         }
     }
 }
