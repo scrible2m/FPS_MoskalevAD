@@ -18,6 +18,9 @@ TagManager:
   - HP
   - Enemy
   - LevelEditPoint
+  - Mine
+  - HealthPackPortable
+  - HealthKit
   layers:
   - Default
   - TransparentFX

@@ -15,6 +15,7 @@ public class Bot : Unit
     private Transform _playerPos;
     private bool _grounded;
     private float _groundChkDst = 0.1f;
+    
 
     [SerializeField] private float _stopDistance = 0.2f;
     [SerializeField] private float _attakDistance = 4f;
@@ -136,18 +137,16 @@ public class Bot : Unit
 
     private void FindVisibleTargets()
     {
-        Debug.Log("Seek");
-        Collider[] _targetInViewRadius = Physics.OverlapSphere(transform.position, _maxRadius, _targetLayer);
-        Debug.Log(_targetInViewRadius.Length);
+   Collider[] _targetInViewRadius = Physics.OverlapSphere(transform.position, _maxRadius, _targetLayer);
         for (int i = 0; i< _targetInViewRadius.Length; i++)
         {
             
             Transform target = _targetInViewRadius[i].transform;
-            Vector3 dirToTarget = (target.position - Position).normalized;
+            Vector3 dirToTarget = (target.position - GOtransform.position).normalized;
             float targetAngle = Vector3.Angle(transform.forward, dirToTarget);
             if ((-_maxAngle)<targetAngle && _maxAngle>targetAngle)
             {
-                float distToTarget = Vector3.Distance(Position, target.position);
+                float distToTarget = Vector3.Distance(GOtransform.position, target.position);
                 if(!Physics.Raycast((transform.position+Vector3.up), dirToTarget, _obstacleLayer))
                 {
                     if(!_visibleTargets.Contains(target))
